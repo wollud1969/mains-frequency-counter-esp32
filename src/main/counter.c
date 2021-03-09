@@ -26,10 +26,11 @@ static void counterSecondTask(void *arg) {
 static void counterZeroCrossingAveragerTask(void *arg) {
     uint64_t counterCnt = 0;
     uint64_t counterSum = 0;
+    uint64_t savedCounterValue = 0;
     while (1) {
-        uint64_t counterCurrentValue;
-        xQueueReceive(zeroCrossingQueue, &counterCurrentValue, portMAX_DELAY);
-        if (counterCurrentValue == QUEUE_MARKER) {
+        uint64_t currentCounterValue;
+        xQueueReceive(zeroCrossingQueue, &currentCounterValue, portMAX_DELAY);
+        if (currentCounterValue == QUEUE_MARKER) {
             if (counterCnt > 0) {
                 uint32_t counterSecondAverage = ((uint32_t)(counterSum)) / ((uint32_t)(counterCnt));
                 ESP_LOGI(TAG, "%u %u %u", (uint32_t)counterCnt, (uint32_t)counterSum, counterSecondAverage);
@@ -39,8 +40,12 @@ static void counterZeroCrossingAveragerTask(void *arg) {
             counterCnt = 0;
             counterSum = 0;
         } else {
+            uint64_t period = (savedCounterValue < currentCounterValue) ?
+                              (currentCounterValue - savedCounterValue) : 
+                              ((UINT64_MAX - savedCounterValue) + currentCounterValue);
+            savedCounterValue = currentCounterValue;
             counterCnt += 1;
-            counterSum += counterCurrentValue;
+            counterSum += period;
         }
     }
 }

@@ -18,7 +18,7 @@
 
 
 
-static const char *TAG = "app";
+// static const char *TAG = "app";
 
 void deviceInit() {
     /* Initialize NVS partition */
