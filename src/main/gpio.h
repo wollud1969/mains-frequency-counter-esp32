@@ -5,7 +5,7 @@
 
 
 #define GPIO_FORCE_PROV 5
-
+#define GPIO_ZERO_CROSSING 26
 
 void gpioInit();
 bool isGpioForceProv();

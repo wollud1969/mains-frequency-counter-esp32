@@ -14,7 +14,7 @@
 #include <nvs_flash.h>
 
 #include "gpio.h"
-#include "timer.h"
+#include "counter.h"
 
 
 
@@ -39,7 +39,7 @@ void app_main(void)
     gpioInit();
     networkInit(isGpioForceProv());
 
-    timerInit();
+    counterInit();
 
     /* Start main application now */
     while (1) {
