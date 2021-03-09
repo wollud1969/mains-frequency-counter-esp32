@@ -23,7 +23,7 @@ void gpioInit() {
     io_conf.mode = GPIO_MODE_INPUT;
     io_conf.pull_up_en = 0;
     io_conf.pull_down_en = 0;
-    gpio_config(&i_conf);
+    gpio_config(&io_conf);
 
     gpio_isr_handler_add(GPIO_ZERO_CROSSING, counterZeroCrossingISR, NULL);
 

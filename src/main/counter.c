@@ -1,6 +1,6 @@
 #include <stdint.h>
 
-#include "timer.h"
+#include "counter.h"
 
 #include <driver/timer.h>
 #include <esp_log.h>
@@ -16,10 +16,10 @@ static xQueueHandle zeroCrossingQueue = NULL;
 static const uint64_t QUEUE_MARKER = UINT64_MAX;
 
 
-static void counterTask(void *arg) {
+static void counterSecondTask(void *arg) {
     while (1) {
         vTaskDelay(1000 / portTICK_PERIOD_MS);
-        xQueueSend(zeroCrossingQueue, QUEUE_MARKER, portMAX_DELAY);
+        xQueueSend(zeroCrossingQueue, &QUEUE_MARKER, portMAX_DELAY);
     }
 }
 
@@ -32,7 +32,7 @@ static void counterZeroCrossingAveragerTask(void *arg) {
         if (counterCurrentValue == QUEUE_MARKER) {
             if (counterCnt > 0) {
                 uint32_t counterSecondAverage = ((uint32_t)(counterSum)) / ((uint32_t)(counterCnt));
-                ESP_LOGI(TAG, "second average is %lu", counterSecondAverage);
+                ESP_LOGI(TAG, "second average is %u", counterSecondAverage);
             } else {
                 ESP_LOGW(TAG, "counterCnt is zero");
             }
@@ -40,7 +40,7 @@ static void counterZeroCrossingAveragerTask(void *arg) {
             counterSum = 0;
         } else {
             counterSum += 1;
-            counterCnt += counterValue;
+            counterCnt += counterCurrentValue;
         }
     }
 }
@@ -49,11 +49,11 @@ void IRAM_ATTR counterZeroCrossingISR(void *arg) {
     uint64_t counterValue = 0;
     
     timer_spinlock_take(TIMER_GROUP_0);
-    counterValue = time_group_get_counter_value_in_isr(TIMER_GROUP_0, 0);
+    counterValue = timer_group_get_counter_value_in_isr(TIMER_GROUP_0, 0);
     timer_spinlock_give(TIMER_GROUP_0);
 
     if (zeroCrossingQueue) {
-        xQueueSendFromISR(zeroCrossingQueue, counterValue, NULL);
+        xQueueSendFromISR(zeroCrossingQueue, &counterValue, NULL);
     }
 }
 
