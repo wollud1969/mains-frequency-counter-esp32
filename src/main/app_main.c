@@ -13,6 +13,9 @@
 #include <esp_event.h>
 #include <nvs_flash.h>
 
+#include "gpio.h"
+
+
 
 static const char *TAG = "app";
 
@@ -32,8 +35,8 @@ void deviceInit() {
 void app_main(void)
 {
     deviceInit();
-
-    networkInit(false);
+    gpioInit();
+    networkInit(isGpioForceProv());
 
 
     /* Start main application now */
