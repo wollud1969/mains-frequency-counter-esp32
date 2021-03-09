@@ -3,6 +3,6 @@
 # project subdirectory.
 #
 
-PROJECT_NAME := custom_config
+PROJECT_NAME := wifi_prov_mgr
 
 include $(IDF_PATH)/make/project.mk
