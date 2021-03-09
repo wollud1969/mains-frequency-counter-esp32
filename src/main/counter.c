@@ -30,8 +30,14 @@ static void counterZeroCrossingAveragerTask(void *arg) {
         uint64_t counterCurrentValue;
         xQueueReceive(zeroCrossingQueue, &counterCurrentValue, portMAX_DELAY);
         if (counterCurrentValue == QUEUE_MARKER) {
-            uint32_t counterSecondAverage = ((uint32_t)(counterSum)) / ((uint32_t)(counterCnt));
-            ESP_LOGI(TAG, "second average is %lu", counterSecondAverage);
+            if (counterCnt > 0) {
+                uint32_t counterSecondAverage = ((uint32_t)(counterSum)) / ((uint32_t)(counterCnt));
+                ESP_LOGI(TAG, "second average is %lu", counterSecondAverage);
+            } else {
+                ESP_LOGW(TAG, "counterCnt is zero");
+            }
+            counterCnt = 0;
+            counterSum = 0;
         } else {
             counterSum += 1;
             counterCnt += counterValue;
