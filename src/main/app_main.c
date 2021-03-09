@@ -187,6 +187,7 @@ void app_main(void)
     bool provisioned = false;
     /* Let's find out if the device is provisioned */
     ESP_ERROR_CHECK(wifi_prov_mgr_is_provisioned(&provisioned));
+provisioned = false;
 
     /* If device is not yet provisioned start provisioning service */
     if (!provisioned) {
@@ -253,7 +254,8 @@ void app_main(void)
          * This call must be made after starting the provisioning, and only if the endpoint
          * has already been created above.
          */
-        wifi_prov_mgr_endpoint_register("custom-data", custom_prov_data_handler, NULL);
+        char privateData[32];
+        wifi_prov_mgr_endpoint_register("custom-data", custom_prov_data_handler, (void*)privateData);
 
         /* Uncomment the following to wait for the provisioning to finish and then release
          * the resources of the manager. Since in this case de-initialization is triggered
