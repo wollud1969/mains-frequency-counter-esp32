@@ -14,6 +14,7 @@
 #include <nvs_flash.h>
 
 
+static const char *TAG = "app";
 
 void deviceInit() {
     /* Initialize NVS partition */

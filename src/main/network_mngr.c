@@ -23,7 +23,7 @@
 
 #include <wifi_provisioning/scheme_ble.h>
 
-static const char *TAG = "app";
+static const char *TAG = "nm";
 
 /* Signal Wi-Fi events on this event-group */
 const int WIFI_CONNECTED_EVENT = BIT0;
