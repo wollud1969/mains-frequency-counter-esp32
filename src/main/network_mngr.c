@@ -116,6 +116,8 @@ esp_err_t custom_prov_data_handler(uint32_t session_id, const uint8_t *inbuf, ss
 
 void networkInit(bool forceProv)
 {
+    ESP_LOGI(TAG, "forceProv: %d", forceProv);
+    
     /* Initialize TCP/IP */
     ESP_ERROR_CHECK(esp_netif_init());
 
