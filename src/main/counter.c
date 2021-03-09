@@ -32,15 +32,15 @@ static void counterZeroCrossingAveragerTask(void *arg) {
         if (counterCurrentValue == QUEUE_MARKER) {
             if (counterCnt > 0) {
                 uint32_t counterSecondAverage = ((uint32_t)(counterSum)) / ((uint32_t)(counterCnt));
-                ESP_LOGI(TAG, "second average is %u", counterSecondAverage);
+                ESP_LOGI(TAG, "%u %u %u", (uint32_t)counterCnt, (uint32_t)counterSum, counterSecondAverage);
             } else {
                 ESP_LOGW(TAG, "counterCnt is zero");
             }
             counterCnt = 0;
             counterSum = 0;
         } else {
-            counterSum += 1;
-            counterCnt += counterCurrentValue;
+            counterCnt += 1;
+            counterSum += counterCurrentValue;
         }
     }
 }

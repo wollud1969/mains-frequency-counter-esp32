@@ -25,6 +25,7 @@ void gpioInit() {
     io_conf.pull_down_en = 0;
     gpio_config(&io_conf);
 
+    gpio_install_isr_service(0);
     gpio_isr_handler_add(GPIO_ZERO_CROSSING, counterZeroCrossingISR, NULL);
 
     ESP_LOGI(TAG, "gpios configured");
