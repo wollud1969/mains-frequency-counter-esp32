@@ -18,7 +18,7 @@
 #include "timesync.h"
 #include "sinkSender.h"
 
-const char VERSION[] = "deadbeef;
+const char VERSION[] = "deadbeef";
 
 
 // static const char *TAG = "app";

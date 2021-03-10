@@ -9,7 +9,6 @@
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <errno.h>
-#include <sys/sysinfo.h>
 
 #include <esp_log.h>
 #include <freertos/FreeRTOS.h>
@@ -19,27 +18,28 @@
 static const char *TAG = "ss";
 extern char VERSION[];
 
+const char sinkServer[] = "sink.hottis.de";
+const char deviceId[] = "MainsCnt0x";
+const char sharedSecret[] = "1234567890123456789012345678901";
+const uint16_t sinkPort = 20169;
 
 extern xQueueHandle minuteBufferQueue;
 
 
 static void sinksenderSend(t_minuteBuffer *minuteBuffer) {
-    struct sysinfo info;
-    sysinfo(&info);
+    minuteBuffer->s.totalRunningHours = 0;
+    minuteBuffer->s.totalPowercycles = 0;
+    minuteBuffer->s.totalWatchdogResets = 0;
+    minuteBuffer->s.version = strtoll(VERSION, NULL, 16);
 
-    minuteBuffer.s.totalRunningHours = info.uptime / 3600;
-    minuteBuffer.s.totalPowercycles = 0;
-    minuteBuffer.s.totalWatchdogResets = 0;
-    minuteBuffer.s.version = strtoll(VERSION, NULL, 16);
+    memset(minuteBuffer->s.deviceId, 0, sizeof(minuteBuffer->s.deviceId));
+    strcpy(minuteBuffer->s.deviceId, deviceId);
 
-    memset(minuteBuffer.s.deviceId, 0, sizeof(minuteBuffer.s.deviceId));
-    strcpy(minuteBuffer.s.deviceId, deviceId);
-
-    memcpy(minuteBuffer.s.hash, sharedSecret, SHA256_BLOCK_SIZE);
+    memcpy(minuteBuffer->s.hash, sharedSecret, SHA256_BLOCK_SIZE);
     SHA256_CTX ctx;
     sha256_init(&ctx);
-    sha256_update(&ctx, minuteBuffer.b, sizeof(minuteBuffer.b));
-    sha256_final(&ctx, minuteBuffer.s.hash);
+    sha256_update(&ctx, minuteBuffer->b, sizeof(minuteBuffer->b));
+    sha256_final(&ctx, minuteBuffer->s.hash);
 
     struct hostent *hptr = gethostbyname(sinkServer);
     if (hptr) {
@@ -56,7 +56,7 @@ static void sinksenderSend(t_minuteBuffer *minuteBuffer) {
             servaddr.sin_port = htons(sinkPort);
             memcpy(&servaddr.sin_addr.s_addr, sinkAddr, 4);
 
-            ssize_t res = sendto(sockfd, minuteBuffer.b, sizeof(minuteBuffer.b), 
+            ssize_t res = sendto(sockfd, minuteBuffer->b, sizeof(minuteBuffer->b), 
                                 0, (struct sockaddr*)&servaddr, 
                                 sizeof(servaddr));
             ESP_LOGI(TAG, "%d octets sent", res);
@@ -67,7 +67,7 @@ static void sinksenderSend(t_minuteBuffer *minuteBuffer) {
         ESP_LOGE(TAG, "unknown address type: %d", hptr->h_addrtype);
         }
     } else {
-        ESP_LOGE(TAG, "sinkserver %s couldn't be resolved: %s", sinkServer, hstrerror(h_errno));
+        ESP_LOGE(TAG, "sinkserver %s couldn't be resolved: %d", sinkServer, h_errno);
     }
 }
 
