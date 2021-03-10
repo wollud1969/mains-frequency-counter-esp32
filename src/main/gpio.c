@@ -10,6 +10,8 @@ static const char *TAG = "gpio";
 
 
 void gpioInit() {
+    ESP_LOGI(TAG, "Initializing gpios");
+
     gpio_config_t io_conf;
     io_conf.intr_type = GPIO_INTR_DISABLE;
     io_conf.pin_bit_mask = (1ULL << GPIO_FORCE_PROV);
@@ -27,8 +29,6 @@ void gpioInit() {
 
     gpio_install_isr_service(0);
     gpio_isr_handler_add(GPIO_ZERO_CROSSING, counterZeroCrossingISR, NULL);
-
-    ESP_LOGI(TAG, "gpios configured");
 }
 
 bool isGpioForceProv() {

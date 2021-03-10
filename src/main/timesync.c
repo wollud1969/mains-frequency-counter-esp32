@@ -21,7 +21,7 @@ void timesyncCallback(struct timeval *tv) {
 }
 
 void timesyncInit() {
-    ESP_LOGI(TAG, "Initializiing SNTP");
+    ESP_LOGI(TAG, "Initializing SNTP");
     sntp_setoperatingmode(SNTP_OPMODE_POLL);
     sntp_setservername(0, SNTP_SERVER);
     sntp_set_time_sync_notification_cb(timesyncCallback);
