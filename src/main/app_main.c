@@ -39,15 +39,14 @@ void deviceInit() {
 void app_main(void)
 {
     deviceInit();
-
-    // it is important to initialize the counter before the gpios
+// it is important to initialize the counter before the gpios
     counterInit();
-
-    gpioInit();
-    networkInit(isGpioForceProv());
-    timesyncInit();
-
     sinksenderInit();
+    gpioInit();
+    gpioLedBlink(50);
+    networkInit(isGpioForceProv());
+    gpioLedBlink(25);
+    timesyncInit();
 
     /* Start main application now */
     while (1) {

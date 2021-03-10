@@ -1,6 +1,7 @@
 #include "sinkSender.h"
 #include "sinkStruct.h"
 #include "sha256.h"
+#include "gpio.h"
 
 #include <stdint.h>
 #include <stdbool.h>
@@ -20,22 +21,15 @@
 static const char *TAG = "ss";
 extern char VERSION[];
 
-const uint32_t CONFIG_MAGIC = 0xaffe0002;
 
-static const char DEFAULT_SINKSERVER[] = "sink.hottis.de";
-static const uint16_t DEFAULT_SINKPORT = 20169;
+static const char SINK_SERVER[] = "sink.hottis.de";
+static const uint16_t SINK_PORT = 20169;
+
 static const char DEFAULT_DEVICE_ID[] = "MainsCnt0x";
+static char deviceId[16];
 static const char DEFAULT_SHAREDSECRET[] = "1234567890123456789012345678901";
+static char sharedSecret[32];
 
-typedef struct __attribute__((__packed__)) {
-    uint32_t magic;
-    char sinkServer[48];
-    uint16_t sinkPort;
-    char deviceId[16];
-    char sharedSecret[32];
-} sinksenderConfig_t;
-
-sinksenderConfig_t config;
 
 
 extern xQueueHandle minuteBufferQueue;
@@ -48,15 +42,15 @@ static void sinksenderSend(t_minuteBuffer *minuteBuffer) {
     minuteBuffer->s.version = strtoll(VERSION, NULL, 16);
 
     memset(minuteBuffer->s.deviceId, 0, sizeof(minuteBuffer->s.deviceId));
-    strcpy(minuteBuffer->s.deviceId, config.deviceId);
+    strcpy(minuteBuffer->s.deviceId, deviceId);
 
-    memcpy(minuteBuffer->s.hash, config.sharedSecret, SHA256_BLOCK_SIZE);
+    memcpy(minuteBuffer->s.hash, sharedSecret, SHA256_BLOCK_SIZE);
     SHA256_CTX ctx;
     sha256_init(&ctx);
     sha256_update(&ctx, minuteBuffer->b, sizeof(minuteBuffer->b));
     sha256_final(&ctx, minuteBuffer->s.hash);
 
-    struct hostent *hptr = gethostbyname(config.sinkServer);
+    struct hostent *hptr = gethostbyname(SINK_SERVER);
     if (hptr) {
         if (hptr->h_addrtype == AF_INET) {
         char *sinkAddr = hptr->h_addr_list[0];
@@ -68,7 +62,7 @@ static void sinksenderSend(t_minuteBuffer *minuteBuffer) {
             struct sockaddr_in servaddr;
             memset(&servaddr, 0, sizeof(servaddr));
             servaddr.sin_family = AF_INET;
-            servaddr.sin_port = htons(config.sinkPort);
+            servaddr.sin_port = htons(SINK_PORT);
             memcpy(&servaddr.sin_addr.s_addr, sinkAddr, 4);
 
             ssize_t res = sendto(sockfd, minuteBuffer->b, sizeof(minuteBuffer->b), 
@@ -86,7 +80,7 @@ static void sinksenderSend(t_minuteBuffer *minuteBuffer) {
         ESP_LOGE(TAG, "unknown address type: %d", hptr->h_addrtype);
         }
     } else {
-        ESP_LOGE(TAG, "sinkserver %s couldn't be resolved: %d", config.sinkServer, h_errno);
+        ESP_LOGE(TAG, "sinkserver %s couldn't be resolved: %d", SINK_SERVER, h_errno);
     }
 }
 
@@ -95,8 +89,10 @@ static void sinksenderExecTask(void *arg) {
         if (minuteBufferQueue) {
             static t_minuteBuffer minuteBuffer;
             if (xQueueReceive(minuteBufferQueue, &minuteBuffer, portMAX_DELAY) == pdPASS) {
+                gpioLedOff();
                 ESP_LOGI(TAG, "Got a buffer from queue");
                 sinksenderSend(&minuteBuffer);
+                gpioLedOn();
             }
         }
     }
@@ -107,33 +103,38 @@ void sinksenderInit() {
 
     ESP_LOGI(TAG, "About to load sink sender configuration");
     nvs_handle_t nvsHandle;
-    if (ESP_OK != nvs_open("config", NVS_READWRITE, &nvsHandle)) {
-        ESP_LOGE(TAG, "Unable to open nvs namespace config, use default values");
-        strcpy(config.sinkServer, DEFAULT_SINKSERVER);
-        config.sinkPort = DEFAULT_SINKPORT;
-        strcpy(config.deviceId, DEFAULT_DEVICE_ID);
-        strcpy(config.sharedSecret, DEFAULT_SHAREDSECRET);
+    if (ESP_OK != nvs_open("sink", NVS_READWRITE, &nvsHandle)) {
+        ESP_LOGE(TAG, "Unable to open nvs namespace sink, use default values");
+        strcpy(deviceId, DEFAULT_DEVICE_ID);
+        strcpy(sharedSecret, DEFAULT_SHAREDSECRET);
     } else {
         size_t s;
-        esp_err_t err = nvs_get_blob(nvsHandle, "sinkSender", (void*)&config, &s);
+        esp_err_t err;
+
+        err = nvs_get_str(nvsHandle, "deviceId", NULL, &s);
+        ESP_LOGI(TAG, "1. err: %d, len: %d", err, s);
+        err = nvs_get_str(nvsHandle, "deviceId", deviceId, &s);
+        ESP_LOGI(TAG, "2. err: %d, len: %d", err, s);
         if (err == ESP_OK) {
-            ESP_LOGI(TAG, "sinkSender configuration loaded");
+            ESP_LOGI(TAG, "deviceId: %s", deviceId);
         } else {
-            ESP_LOGE(TAG, "Get result is %d", err);
+            strcpy(deviceId, DEFAULT_DEVICE_ID);
+            ESP_LOGI(TAG, "deviceId not configured, use default");            
         }
-        if (config.magic != CONFIG_MAGIC) {
-            ESP_LOGW(TAG, "No configuration found, write it");
-            config.magic = CONFIG_MAGIC;
-            strcpy(config.sinkServer, DEFAULT_SINKSERVER);
-            config.sinkPort = DEFAULT_SINKPORT;
-            strcpy(config.deviceId, DEFAULT_DEVICE_ID);
-            strcpy(config.sharedSecret, DEFAULT_SHAREDSECRET);
-            err = nvs_set_blob(nvsHandle, "sinkSender", (void*)&config, sizeof(config));
-            ESP_LOGW(TAG, "Set result is %d", err);
-            err = nvs_commit(nvsHandle);
-            ESP_LOGW(TAG, "Commit result is %d", err);
+        err = nvs_get_str(nvsHandle, "sharedSecret", NULL, &s);
+        ESP_LOGI(TAG, "1. err: %d, len: %d", err, s);
+        err = nvs_get_str(nvsHandle, "sharedSecret", sharedSecret, &s);
+        ESP_LOGI(TAG, "2. err: %d, len: %d", err, s);
+        if (err == ESP_OK) {
+            ESP_LOGI(TAG, "sharedSecret: %s", sharedSecret);
+        } else {
+            strcpy(sharedSecret, DEFAULT_SHAREDSECRET);
+            ESP_LOGI(TAG, "sharedSecret not configured, use default");            
         }
     }
+
+    ESP_LOGI(TAG, "finally deviceId: %s", deviceId);
+    ESP_LOGI(TAG, "finally sharedSecret: %s", sharedSecret);
 
     xTaskCreate(sinksenderExecTask, "sinksender_exec_task", 4096, NULL, 5, NULL);
 }

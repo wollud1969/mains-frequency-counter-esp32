@@ -1,4 +1,5 @@
 #include "timesync.h"
+#include "gpio.h"
 #include <stdbool.h>
 #include <esp_log.h>
 #include <esp_sntp.h>
@@ -17,7 +18,10 @@ void timesyncCallback(struct timeval *tv) {
 
     ESP_LOGI(TAG, "time is synchronized now: %u s %u ms", current_seconds, current_milliseconds);
 
-    synchronized = true;
+    if (!synchronized) {
+        gpioLedBlink(10);
+        synchronized = true;
+    }
 }
 
 void timesyncInit() {

@@ -4,6 +4,7 @@
 #include "counter.h"
 #include "timesync.h"
 #include "sinkStruct.h"
+#include "gpio.h"
 
 #include <driver/timer.h>
 #include <esp_log.h>
@@ -69,6 +70,7 @@ static void counterZeroCrossingAveragerTask(void *arg) {
                         } else {
                             ESP_LOGI(TAG, "now it is settled");
                             settled = true;
+                            gpioLedOn();
                         }
                     }
                 }
