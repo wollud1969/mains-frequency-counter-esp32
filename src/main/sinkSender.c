@@ -1,4 +1,4 @@
-#include "sinksender.h"
+#include "sinkSender.h"
 #include "sinkStruct.h"
 
 #include <stdint.h>
@@ -29,5 +29,5 @@ static void sinksenderExecTask(void *arg) {
 void sinksenderInit() {
     ESP_LOGI(TAG, "Initializing sink sender");
 
-    xTaskCreate(sinksenderExec, "sinksender_exec_task", 4096, NULL, 5, NULL);
+    xTaskCreate(sinksenderExecTask, "sinksender_exec_task", 4096, NULL, 5, NULL);
 }
