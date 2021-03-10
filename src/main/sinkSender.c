@@ -20,7 +20,7 @@
 static const char *TAG = "ss";
 extern char VERSION[];
 
-const uint32_t CONFIG_MAGIC = 0xaffe0001;
+const uint32_t CONFIG_MAGIC = 0xaffe0002;
 
 static const char DEFAULT_SINKSERVER[] = "sink.hottis.de";
 static const uint16_t DEFAULT_SINKPORT = 20169;
