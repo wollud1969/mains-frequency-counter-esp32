@@ -16,6 +16,7 @@
 #include "gpio.h"
 #include "counter.h"
 #include "timesync.h"
+#include "sinkSender.h"
 
 
 
@@ -44,6 +45,8 @@ void app_main(void)
     gpioInit();
     networkInit(isGpioForceProv());
     timesyncInit();
+
+    sinksenderInit();
 
     /* Start main application now */
     while (1) {

@@ -20,6 +20,7 @@ static const uint32_t COUNTER_FREQUENCY = 1e6;
 static xQueueHandle zeroCrossingQueue = NULL;
 static const uint64_t QUEUE_MARKER = UINT64_MAX;
 
+xQueueHandle minuteBufferQueue = NULL;
 
 static t_minuteBuffer minuteBuffer;
 static uint32_t secondOfMinute;
@@ -61,6 +62,9 @@ static void counterZeroCrossingAveragerTask(void *arg) {
         
                         if (settled) {
                             ESP_LOGI(TAG, "handing over to sender");
+                            if (minuteBufferQueue) {
+                                xQueueSend(minuteBufferQueue, &minuteBuffer, portMAX_DELAY);
+                            }
                             // sinkSenderSendMinute();
                         } else {
                             ESP_LOGI(TAG, "now it is settled");
@@ -97,6 +101,8 @@ void IRAM_ATTR counterZeroCrossingISR(void *arg) {
 }
 
 void counterInit() {
+    ESP_LOGI(TAG, "Initializing counter");
+
     timer_config_t config = {
         .divider = 80,
         .counter_dir = TIMER_COUNT_UP,
@@ -109,6 +115,7 @@ void counterInit() {
     timer_start(TIMER_GROUP_0, 0);
 
     zeroCrossingQueue = xQueueCreate(20, sizeof(uint64_t));
+    minuteBufferQueue = xQueueCreate(5, sizeof(t_minuteBuffer));
 
     settled = false;
     secondOfMinute = 0;
