@@ -3,4 +3,5 @@ idf_component_register(SRCS "app_main.c"
                             "gpio.c"
                             "counter.c"
                             "timesync.c"
+                            "sha256.c"
                     INCLUDE_DIRS ".")

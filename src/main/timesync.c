@@ -33,3 +33,9 @@ void timesyncInit() {
 bool timesyncReady() {
     return synchronized;
 }
+
+uint32_t timesyncGetCurrentSeconds() {
+    struct timespec timestamp;
+    clock_gettime(CLOCK_REALTIME, &timestamp);
+    return timestamp.tv_sec;
+}

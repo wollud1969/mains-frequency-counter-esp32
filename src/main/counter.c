@@ -1,7 +1,9 @@
 #include <stdint.h>
+#include <stdbool.h>
 
 #include "counter.h"
 #include "timesync.h"
+#include "sinkStruct.h"
 
 #include <driver/timer.h>
 #include <esp_log.h>
@@ -16,6 +18,10 @@ static const char *TAG = "cnt";
 static xQueueHandle zeroCrossingQueue = NULL;
 static const uint64_t QUEUE_MARKER = UINT64_MAX;
 
+
+static t_minuteBuffer minuteBuffer;
+static uint32_t secondOfMinute;
+static bool settled = false;
 
 static void counterSecondTask(void *arg) {
     while (1) {
@@ -34,8 +40,30 @@ static void counterZeroCrossingAveragerTask(void *arg) {
         if (currentCounterValue == QUEUE_MARKER) {
             if (counterCnt > 0) {
                 uint32_t counterSecondAverage = ((uint32_t)(counterSum)) / ((uint32_t)(counterCnt));
-                int ts = timesyncReady();
-                ESP_LOGI(TAG, "%d %u %u %u", ts, (uint32_t)counterCnt, (uint32_t)counterSum, counterSecondAverage);
+                bool timeInSync = timesyncReady();
+                ESP_LOGI(TAG, "%d %u %u %u", timeInSync, (uint32_t)counterCnt, (uint32_t)counterSum, counterSecondAverage);
+
+                if (timeInSync) {
+                    if (secondOfMinute == 0) {
+                        minuteBuffer.s.timestamp = timesyncGetCurrentSeconds();
+                    }
+                    
+                    minuteBuffer.s.frequency[secondOfMinute] = frequency;
+                    secondOfMinute += 1;
+
+                    if (secondOfMinute == SECONDS_PER_MINUTE) {
+                        ESP_LOGI(TAG, "minute is full");
+                        secondOfMinute = 0;
+        
+                        if (settled) {
+                            ESP_LOGI(TAG, "handing over to sender");
+                            // sinkSenderSendMinute();
+                        } else {
+                            ESP_LOGI(TAG, "now it is settled");
+                            settled = true;
+                        }
+                    }
+                }
             } else {
                 ESP_LOGW(TAG, "counterCnt is zero");
             }
@@ -77,6 +105,9 @@ void counterInit() {
     timer_start(TIMER_GROUP_0, 0);
 
     zeroCrossingQueue = xQueueCreate(20, sizeof(uint64_t));
+
+    settled = false;
+    secondOfMinute = 0;
 
     xTaskCreate(counterSecondTask, "counter_second_task", 2048, NULL, 5, NULL);
     xTaskCreate(counterZeroCrossingAveragerTask, "counter_averager_task", 2048, NULL, 5, NULL);
