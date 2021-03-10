@@ -15,7 +15,7 @@ void timesyncCallback(struct timeval *tv) {
     uint32_t current_seconds = timestamp.tv_sec;
     uint32_t current_milliseconds = timestamp.tv_nsec / 1e6;
 
-    ESP_LOGI(TAG, "time is synchronized now: %u s %u ms", current_secound, current_milliseconds);
+    ESP_LOGI(TAG, "time is synchronized now: %u s %u ms", current_seconds, current_milliseconds);
 
     synchronized = true;
 }
