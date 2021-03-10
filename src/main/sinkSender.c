@@ -30,9 +30,9 @@ static const char DEFAULT_SHAREDSECRET[] = "1234567890123456789012345678901";
 typedef struct __attribute__((__packed__)) {
     uint32_t magic;
     char sinkServer[48];
-    uint16 sinkPort;
+    uint16_t sinkPort;
     char deviceId[16];
-    uint8_t sharedSecret[32];
+    char sharedSecret[32];
 } sinksenderConfig_t;
 
 sinksenderConfig_t config;
@@ -75,6 +75,10 @@ static void sinksenderSend(t_minuteBuffer *minuteBuffer) {
                                 0, (struct sockaddr*)&servaddr, 
                                 sizeof(servaddr));
             ESP_LOGI(TAG, "%d octets sent", res);
+            int rc = close(sockfd);
+            if (rc == -1) {
+                ESP_LOGW(TAG, "close on socket returns %s", strerror(errno));
+            }
         } else {
             ESP_LOGE(TAG, "unable to get socket: %s", strerror(errno));
         }
@@ -110,7 +114,8 @@ void sinksenderInit() {
         strcpy(config.deviceId, DEFAULT_DEVICE_ID);
         strcpy(config.sharedSecret, DEFAULT_SHAREDSECRET);
     } else {
-        esp_err_t err = nvs_get_blob(nvsHandle, "sinkSender", (void*)&config, sizeof(config));
+        size_t s;
+        esp_err_t err = nvs_get_blob(nvsHandle, "sinkSender", (void*)&config, &s);
         if (err == ESP_OK) {
             ESP_LOGI(TAG, "sinkSender configuration loaded");
         } else {
