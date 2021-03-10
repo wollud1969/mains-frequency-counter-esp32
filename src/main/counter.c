@@ -1,6 +1,7 @@
 #include <stdint.h>
 
 #include "counter.h"
+#include "timesync.h"
 
 #include <driver/timer.h>
 #include <esp_log.h>
@@ -33,7 +34,8 @@ static void counterZeroCrossingAveragerTask(void *arg) {
         if (currentCounterValue == QUEUE_MARKER) {
             if (counterCnt > 0) {
                 uint32_t counterSecondAverage = ((uint32_t)(counterSum)) / ((uint32_t)(counterCnt));
-                ESP_LOGI(TAG, "%u %u %u", (uint32_t)counterCnt, (uint32_t)counterSum, counterSecondAverage);
+                int ts = timesyncReady();
+                ESP_LOGI(TAG, "%d %u %u %u", ts, (uint32_t)counterCnt, (uint32_t)counterSum, counterSecondAverage);
             } else {
                 ESP_LOGW(TAG, "counterCnt is zero");
             }

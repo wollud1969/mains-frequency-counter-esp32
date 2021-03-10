@@ -15,6 +15,7 @@
 
 #include "gpio.h"
 #include "counter.h"
+#include "timesync.h"
 
 
 
@@ -36,9 +37,13 @@ void deviceInit() {
 void app_main(void)
 {
     deviceInit();
+
+    // it is important to initialize the counter before the gpios
     counterInit();
+
     gpioInit();
     networkInit(isGpioForceProv());
+    timesyncInit();
 
     /* Start main application now */
     while (1) {
