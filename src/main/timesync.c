@@ -1,4 +1,4 @@
-#include "timesync.h>"
+#include "timesync.h"
 #include <stdbool.h>
 #include <esp_log.h>
 #include <esp_sntp.h>

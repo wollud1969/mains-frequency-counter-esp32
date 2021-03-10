@@ -1,5 +1,5 @@
 #ifndef _TIMESYNC_H_
-#deifne _TIMESYNC_H_
+#define _TIMESYNC_H_
 
 #include <stdbool.h>
 
