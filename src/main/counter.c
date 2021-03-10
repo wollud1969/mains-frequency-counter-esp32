@@ -14,6 +14,8 @@
 
 static const char *TAG = "cnt";
 
+static const uint32_t PRECISION = 1000;
+static const uint32_t COUNTER_FREQUENCY = 1e6;
 
 static xQueueHandle zeroCrossingQueue = NULL;
 static const uint64_t QUEUE_MARKER = UINT64_MAX;
@@ -43,7 +45,9 @@ static void counterZeroCrossingAveragerTask(void *arg) {
                 bool timeInSync = timesyncReady();
                 ESP_LOGI(TAG, "%d %u %u %u", timeInSync, (uint32_t)counterCnt, (uint32_t)counterSum, counterSecondAverage);
 
-                if (timeInSync) {
+                if (timeInSync) {      
+                    uint32_t frequency = PRECISION * COUNTER_FREQUENCY / counterSecondAverage;
+
                     if (secondOfMinute == 0) {
                         minuteBuffer.s.timestamp = timesyncGetCurrentSeconds();
                     }
