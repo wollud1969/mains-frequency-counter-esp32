@@ -20,7 +20,7 @@ static void gpioLedTask(void *arg) {
     static uint8_t cnt = 0;
     while (1) {
         if (ledBlinkLevel != 0) {
-            if (cnt == ledBlinkLevel) {
+            if (cnt >= ledBlinkLevel) {
                 cnt = 0;
                 ledLastState ^= 0x01;
                 gpio_set_level(GPIO_BUILTIN_LED, ledLastState);
