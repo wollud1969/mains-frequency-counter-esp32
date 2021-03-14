@@ -12,6 +12,7 @@
 #include <errno.h>
 
 #include <esp_log.h>
+#include <esp_timer.h>
 #include <freertos/FreeRTOS.h>
 #include <freertos/task.h>
 #include <freertos/queue.h>
@@ -36,7 +37,9 @@ extern xQueueHandle minuteBufferQueue;
 
 
 static void sinksenderSend(t_minuteBuffer *minuteBuffer) {
-    minuteBuffer->s.totalRunningHours = 0;
+    int64_t uptime = esp_timer_get_time() / 1e6;
+    ESP_LOGI(TAG, "uptime is %lld", uptime);
+    minuteBuffer->s.totalRunningHours = (uint32_t) uptime;
     minuteBuffer->s.totalPowercycles = 0;
     minuteBuffer->s.totalWatchdogResets = 0;
     minuteBuffer->s.version = strtoll(VERSION, NULL, 16);
@@ -100,6 +103,8 @@ static void sinksenderExecTask(void *arg) {
 
 void sinksenderInit() {
     ESP_LOGI(TAG, "Initializing sink sender");
+
+    // esp_timer_init();
 
     ESP_LOGI(TAG, "About to load sink sender configuration");
     nvs_handle_t nvsHandle;
