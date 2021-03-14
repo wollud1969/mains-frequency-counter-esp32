@@ -37,8 +37,7 @@ extern xQueueHandle minuteBufferQueue;
 
 
 static void sinksenderSend(t_minuteBuffer *minuteBuffer) {
-    int64_t uptime = esp_timer_get_time() / 1e6;
-    ESP_LOGI(TAG, "uptime is %lld", uptime);
+    int64_t uptime = esp_timer_get_time() / 1e6 / 3600;
     minuteBuffer->s.totalRunningHours = (uint32_t) uptime;
     minuteBuffer->s.totalPowercycles = 0;
     minuteBuffer->s.totalWatchdogResets = 0;
@@ -103,8 +102,6 @@ static void sinksenderExecTask(void *arg) {
 
 void sinksenderInit() {
     ESP_LOGI(TAG, "Initializing sink sender");
-
-    // esp_timer_init();
 
     ESP_LOGI(TAG, "About to load sink sender configuration");
     nvs_handle_t nvsHandle;
