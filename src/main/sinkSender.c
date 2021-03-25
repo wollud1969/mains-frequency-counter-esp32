@@ -20,8 +20,6 @@
 
 
 static const char *TAG = "ss";
-extern char VERSION[];
-
 
 static const char SINK_SERVER[] = "sink.hottis.de";
 static const uint16_t SINK_PORT = 20169;
@@ -31,6 +29,7 @@ static char deviceId[16];
 static const char DEFAULT_SHAREDSECRET[] = "1234567890123456789012345678901";
 static char sharedSecret[32];
 
+extern const uint32_t APP_VERSION;
 
 
 extern xQueueHandle minuteBufferQueue;
@@ -41,7 +40,7 @@ static void sinksenderSend(t_minuteBuffer *minuteBuffer) {
     minuteBuffer->s.totalRunningHours = (uint32_t) uptime;
     minuteBuffer->s.totalPowercycles = 0;
     minuteBuffer->s.totalWatchdogResets = 0;
-    minuteBuffer->s.version = strtoll(VERSION, NULL, 16);
+    minuteBuffer->s.version = APP_VERSION;
 
     memset(minuteBuffer->s.deviceId, 0, sizeof(minuteBuffer->s.deviceId));
     strcpy(minuteBuffer->s.deviceId, deviceId);

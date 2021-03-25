@@ -18,7 +18,7 @@
 #include "timesync.h"
 #include "sinkSender.h"
 
-const char VERSION[] = "deadbeef";
+extern const uint32_t APP_VERSION;
 
 
 // static const char *TAG = "app";
