@@ -133,7 +133,7 @@ void sinksenderInit() {
             ESP_LOGI(TAG, "sharedSecret not configured, create one");
             memset(sharedSecret, 0, sizeof(sharedSecret));
             esp_fill_random(sharedSecret, sizeof(sharedSecret)-1);
-            for (uint8_t i = 0; i < sizeof(sharedSecret); i++) {
+            for (uint8_t i = 0; i < sizeof(sharedSecret)-1; i++) {
                 sharedSecret[i] = (sharedSecret[i] % 94) + 33; // 0 .. 255 -> 33 .. 93
             }
             ESP_LOGI(TAG, "generated sharedSecret is %s", sharedSecret);
