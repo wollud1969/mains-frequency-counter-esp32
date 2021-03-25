@@ -36,7 +36,7 @@ static void counterZeroCrossingAveragerTask(void *arg) {
     static bool settled = false;
     static t_minuteBuffer minuteBuffer;
 
-    suint64_t counterCnt = 0;
+    uint64_t counterCnt = 0;
     uint64_t counterSum = 0;
     uint64_t savedCounterValue = 0;
     
