@@ -23,9 +23,6 @@ static const uint64_t QUEUE_MARKER = UINT64_MAX;
 
 xQueueHandle minuteBufferQueue = NULL;
 
-static t_minuteBuffer minuteBuffer;
-static uint32_t secondOfMinute;
-static bool settled = false;
 
 static void counterSecondTask(void *arg) {
     while (1) {
@@ -35,9 +32,14 @@ static void counterSecondTask(void *arg) {
 }
 
 static void counterZeroCrossingAveragerTask(void *arg) {
-    uint64_t counterCnt = 0;
+    static uint32_t secondOfMinute = 0;
+    static bool settled = false;
+    static t_minuteBuffer minuteBuffer;
+
+    suint64_t counterCnt = 0;
     uint64_t counterSum = 0;
     uint64_t savedCounterValue = 0;
+    
     while (1) {
         uint64_t currentCounterValue;
         xQueueReceive(zeroCrossingQueue, &currentCounterValue, portMAX_DELAY);
@@ -45,7 +47,8 @@ static void counterZeroCrossingAveragerTask(void *arg) {
             if (counterCnt > 0) {
                 uint32_t counterSecondAverage = ((uint32_t)(counterSum)) / ((uint32_t)(counterCnt));
                 bool timeInSync = timesyncReady();
-                ESP_LOGI(TAG, "%d %u %u %u", timeInSync, (uint32_t)counterCnt, (uint32_t)counterSum, counterSecondAverage);
+                ESP_LOGI(TAG, "%d %u %u %u %u", timeInSync, secondOfMinute, (uint32_t)counterCnt, 
+                         (uint32_t)counterSum, counterSecondAverage);
 
                 if (timeInSync) {      
                     uint32_t frequency = PRECISION * COUNTER_FREQUENCY / counterSecondAverage;
@@ -119,9 +122,6 @@ void counterInit() {
     zeroCrossingQueue = xQueueCreate(20, sizeof(uint64_t));
     minuteBufferQueue = xQueueCreate(5, sizeof(t_minuteBuffer));
 
-    settled = false;
-    secondOfMinute = 0;
-
     xTaskCreate(counterSecondTask, "counter_second_task", 2048, NULL, 5, NULL);
-    xTaskCreate(counterZeroCrossingAveragerTask, "counter_averager_task", 2048, NULL, 5, NULL);
+    xTaskCreate(counterZeroCrossingAveragerTask, "counter_averager_task", 4096, NULL, 5, NULL);
 }
