@@ -127,14 +127,21 @@ void sinksenderInit() {
         ESP_LOGI(TAG, "1. err: %d, len: %d", err, s);
         err = nvs_get_str(nvsHandle, "sharedSecret", sharedSecret, &s);
         ESP_LOGI(TAG, "2. err: %d, len: %d", err, s);
-        if (err == ESP_OK) {
-            ESP_LOGI(TAG, "stored sharedSecret: %s", sharedSecret);
-        } else {
+        if (err != ESP_OK) {
             ESP_LOGI(TAG, "sharedSecret not configured, create one");
             memset(sharedSecret, 0, sizeof(sharedSecret));
             esp_fill_random(sharedSecret, sizeof(sharedSecret)-1);
             for (uint8_t i = 0; i < sizeof(sharedSecret)-1; i++) {
-                sharedSecret[i] = (sharedSecret[i] % 94) + 33; // 0 .. 255 -> 33 .. 93
+                sharedSecret[i] = (sharedSecret[i] % 91) + 33; // 0 .. 255 -> 33 .. 123
+                if (sharedSecret[i] == 34) { // "
+                    sharedSecret[i] = 124;   // |
+                } 
+                if (sharedSecret[i] == 39) { // '
+                    sharedSecret[i] = 125;   // }
+                } 
+                if (sharedSecret[i] == 96) { // `
+                    sharedSecret[i] = 126;   // ~
+                } 
             }
             ESP_LOGI(TAG, "generated sharedSecret is %s", sharedSecret);
             if (ESP_OK == nvs_set_str(nvsHandle, "sharedSecret", sharedSecret)) {
@@ -146,7 +153,7 @@ void sinksenderInit() {
     }
 
     ESP_LOGI(TAG, "finally deviceId: %s", deviceId);
-    ESP_LOGI(TAG, "finally sharedSecret: %s", sharedSecret);
+    ESP_LOGI(TAG, "finally sharedSecret: [masked]");
 
     xTaskCreate(sinksenderExecTask, "sinksender_exec_task", 4096, NULL, 5, NULL);
 }
