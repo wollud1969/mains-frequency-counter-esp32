@@ -145,6 +145,11 @@ void sinksenderInit() {
             ESP_LOGI(TAG, "generated sharedSecret is %s", sharedSecret);
             if (ESP_OK == nvs_set_str(nvsHandle, "sharedSecret", sharedSecret)) {
                 ESP_LOGI(TAG, "new sharedSecret stored");
+                if (ESP_OK == nvs_commit(nvsHandle)) {
+                    ESP_LOGI(TAG, "config store committed");
+                } else {
+                    ESP_LOGE(TAG, "unable to commit config store");
+                }
             } else {
                 ESP_LOGE(TAG, "unable to store sharedSecret");
             }
@@ -153,6 +158,8 @@ void sinksenderInit() {
 
     ESP_LOGI(TAG, "finally deviceId: %s", deviceId);
     ESP_LOGI(TAG, "finally sharedSecret: [masked]");
+
+    nvs_close(nvsHandle);
 
     xTaskCreate(sinksenderExecTask, "sinksender_exec_task", 4096, NULL, 5, NULL);
 }
