@@ -5,4 +5,5 @@ idf_component_register(SRCS "app_main.c"
                             "timesync.c"
                             "sha256.c"
                             "sinkSender.c"
+                            "version.c"
                     INCLUDE_DIRS ".")
