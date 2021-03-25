@@ -123,10 +123,7 @@ void sinksenderInit() {
         size_t s;
         esp_err_t err;
 
-        err = nvs_get_str(nvsHandle, "sharedSecret", NULL, &s);
-        ESP_LOGI(TAG, "1. err: %d, len: %d", err, s);
         err = nvs_get_str(nvsHandle, "sharedSecret", sharedSecret, &s);
-        ESP_LOGI(TAG, "2. err: %d, len: %d", err, s);
         if (err != ESP_OK) {
             ESP_LOGI(TAG, "sharedSecret not configured, create one");
             memset(sharedSecret, 0, sizeof(sharedSecret));
