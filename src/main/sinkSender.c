@@ -129,12 +129,15 @@ void sinksenderInit() {
             memset(sharedSecret, 0, sizeof(sharedSecret));
             esp_fill_random(sharedSecret, sizeof(sharedSecret)-1);
             for (uint8_t i = 0; i < sizeof(sharedSecret)-1; i++) {
-                sharedSecret[i] = (sharedSecret[i] % 91) + 33; // 0 .. 255 -> 33 .. 123
+                sharedSecret[i] = (sharedSecret[i] % 90) + 33; // 0 .. 255 -> 33 .. 122
                 if (sharedSecret[i] == 34) { // "
-                    sharedSecret[i] = 124;   // |
+                    sharedSecret[i] = 123;   // {
                 } 
                 if (sharedSecret[i] == 39) { // '
-                    sharedSecret[i] = 125;   // }
+                    sharedSecret[i] = 124;   // |
+                } 
+                if (sharedSecret[i] == 92) { // }
+                    sharedSecret[i] = 125;   // 
                 } 
                 if (sharedSecret[i] == 96) { // `
                     sharedSecret[i] = 126;   // ~
