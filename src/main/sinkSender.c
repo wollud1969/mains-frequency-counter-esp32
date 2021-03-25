@@ -104,25 +104,25 @@ void sinksenderInit() {
     ESP_LOGI(TAG, "Initializing sink sender");
 
     ESP_LOGI(TAG, "About to load sink sender configuration");
+
+    uint8_t macAddress[6];
+    if (ESP_OK == esp_efuse_mac_get_default(macAddress)) {
+        sprintf(deviceId, "%02x%02x%02x%02x%02x%02x", 
+                macAddress[0], macAddress[1], macAddress[2],
+                macAddress[3], macAddress[4], macAddress[5]);
+    } else {
+        ESP_LOGE(TAG, "can not read mac address, use default device id");
+        strcpy(deviceId, DEFAULT_DEVICE_ID);
+    }
+
     nvs_handle_t nvsHandle;
     if (ESP_OK != nvs_open("sink", NVS_READWRITE, &nvsHandle)) {
         ESP_LOGE(TAG, "Unable to open nvs namespace sink, use default values");
-        strcpy(deviceId, DEFAULT_DEVICE_ID);
         strcpy(sharedSecret, DEFAULT_SHAREDSECRET);
     } else {
         size_t s;
         esp_err_t err;
 
-        err = nvs_get_str(nvsHandle, "deviceId", NULL, &s);
-        ESP_LOGI(TAG, "1. err: %d, len: %d", err, s);
-        err = nvs_get_str(nvsHandle, "deviceId", deviceId, &s);
-        ESP_LOGI(TAG, "2. err: %d, len: %d", err, s);
-        if (err == ESP_OK) {
-            ESP_LOGI(TAG, "deviceId: %s", deviceId);
-        } else {
-            strcpy(deviceId, DEFAULT_DEVICE_ID);
-            ESP_LOGI(TAG, "deviceId not configured, use default");            
-        }
         err = nvs_get_str(nvsHandle, "sharedSecret", NULL, &s);
         ESP_LOGI(TAG, "1. err: %d, len: %d", err, s);
         err = nvs_get_str(nvsHandle, "sharedSecret", sharedSecret, &s);
