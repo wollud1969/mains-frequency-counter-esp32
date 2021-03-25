@@ -128,10 +128,20 @@ void sinksenderInit() {
         err = nvs_get_str(nvsHandle, "sharedSecret", sharedSecret, &s);
         ESP_LOGI(TAG, "2. err: %d, len: %d", err, s);
         if (err == ESP_OK) {
-            ESP_LOGI(TAG, "sharedSecret: %s", sharedSecret);
+            ESP_LOGI(TAG, "stored sharedSecret: %s", sharedSecret);
         } else {
-            strcpy(sharedSecret, DEFAULT_SHAREDSECRET);
-            ESP_LOGI(TAG, "sharedSecret not configured, use default");            
+            ESP_LOGI(TAG, "sharedSecret not configured, create one");
+            memset(sharedSecret, 0, sizeof(sharedSecret));
+            esp_fill_random(sharedSecret, sizeof(sharedSecret)-1);
+            for (uint8_t i = 0; i < sizeof(sharedSecret); i++) {
+                sharedSecret[i] = (sharedSecret[i] % 94) + 33; // 0 .. 255 -> 33 .. 93
+            }
+            ESP_LOGI(TAG, "generated sharedSecret is %s", sharedSecret);
+            if (ESP_OK == nvs_set_str(nvsHandle, "sharedSecret", sharedSecret)) {
+                ESP_LOGI(TAG, "new sharedSecret stored");
+            } else {
+                ESP_LOGE(TAG, "unable to store sharedSecret");
+            }
         }
     }
 
